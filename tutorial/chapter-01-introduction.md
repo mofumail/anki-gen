@@ -1,14 +1,14 @@
 # Chapter 1: Introduction and Architectural Overview
 
-## What We're Building
+## This tutorial
 
 This tutorial walks through building a command-line tool that generates Japanese-language flashcards and inserts them directly into Anki. Given a single Japanese word as input, the system:
 
-1. Looks up the word in a local Japanese dictionary database
-2. Sends the structured dictionary data to a locally-hosted language model to generate example sentences
-3. Synthesizes Japanese audio for the word and sentence
-4. Formats everything into a flashcard
-5. Pushes the flashcard into Anki via its local API
+1. Looks up the word in a local Japanese dictionary database.
+2. Sends the structured dictionary data to a locally-hosted language model to generate example sentences.
+3. Synthesizes Japanese audio for the word and sentence.
+4. Formats everything into a flashcard.
+5. Pushes the flashcard into Anki via its local API.
 
 The end result is a pipeline that turns a Japanese word into a complete, audio-equipped Anki flashcard in a single command:
 
@@ -16,25 +16,25 @@ The end result is a pipeline that turns a Japanese word into a complete, audio-e
 python main.py 食べる
 ```
 
-The tool is interesting not because of what it produces — you could make flashcards by hand — but because of *how* it produces them. The architecture combines deterministic data retrieval with probabilistic AI generation, runs entirely on local infrastructure, and coordinates multiple independent services through a linear pipeline. These are patterns worth understanding in detail.
+This tool combines deterministic data retrieval with probabilistic AI generation, runs entirely on local infrastructure, and manages multiple independent services through a linear pipeline.
 
 ## Who This Tutorial Is For
 
-This tutorial assumes you are comfortable writing Python (standard library usage, pip, dicts, type hints), familiar with REST APIs at a practical level (HTTP methods, JSON payloads, calling localhost services), and have a conceptual understanding of what large language models do — though not how to train or fine-tune them. Basic comfort with command-line tools is expected throughout.
+This tutorial assumes you are comfortable writing Python (standard library usage, pip, dicts, type hints), familiar with REST APIs at a practical level (HTTP methods, JSON payloads, calling localhost services), and have a conceptual understanding of what large language models do, though not how to train or fine-tune them. Basic comfort with command-line tools is expected.
 
-## Hybrid AI: Deterministic Ground Truth Meets Probabilistic Generation
+## Hybrid AI: Deterministic Ground Truth and Probabilistic Generation
 
-The term "hybrid AI" gets used loosely, but here it refers to something specific: a system where some components produce *deterministic, verifiable outputs* and others produce *probabilistic, generated outputs*, and the two are composed together deliberately.
+The term "hybrid AI" gets used loosely, but here it refers to a system where some components produce deterministic, verifiable outputs and others produce probabilistic, generated outputs, and the two are composed together deliberately.
 
 ### The Deterministic Layer
 
-The first stage of the pipeline queries **[JMdict](https://www.edrdg.org/jmdict/j_jmdict.html)** and **[KANJIDIC2](https://www.edrdg.org/wiki/index.php/KANJIDIC_Project)** — two established, community-maintained Japanese dictionary databases managed by the [Electronic Dictionary Research and Development Group (EDRDG)](https://www.edrdg.org/) — through the `jamdict` library. This is a conventional database lookup. Given the input `食べる`, it returns:
+The first stage of the pipeline queries **[JMdict](https://www.edrdg.org/jmdict/j_jmdict.html)** and **[KANJIDIC2](https://www.edrdg.org/wiki/index.php/KANJIDIC_Project)**, two established, community-maintained Japanese dictionary databases managed by the [Electronic Dictionary Research and Development Group (EDRDG)](https://www.edrdg.org/), through the `jamdict` library. This is a conventional database lookup. Given the input `食べる`, it returns:
 
 - **Readings**: たべる
 - **Meanings**: to eat, to live on (e.g. a salary), to live off, to subsist on
 - **Kanji data**: component radicals, stroke counts, readings for each character
 
-This data is *ground truth*. It comes from a curated, peer-reviewed lexicographic database that has been maintained since 1991. The readings and definitions are not generated, predicted, or approximated — they are facts about the Japanese language, stored and retrieved without transformation.
+This data is ground truth. It comes from a curated, peer-reviewed lexicographic database that has been maintained since 1991. The readings and definitions are not generated, predicted, or approximated, and instead are facts about the Japanese language, stored and retrieved without transformation.
 
 This distinction matters because language learning flashcards have a low tolerance for error. If a flashcard tells you that 食べる means "to drink," you will learn the wrong thing and practice it through spaced repetition, compounding the mistake over time. Dictionary data anchors the flashcard in verified information.
 
@@ -46,19 +46,15 @@ The second stage sends the dictionary data to a large language model running loc
 - An English translation of that sentence
 - A concise English gloss for the vocabulary item
 
-This is *generative* output. The model produces plausible, contextually appropriate content, but there is no guarantee that any particular sentence is grammatically perfect or that the translation is precisely correct. The output is probabilistic — run the same query twice and you may get different sentences.
-
-This is an acceptable trade-off because example sentences serve a different pedagogical function than definitions. A definition must be correct. An example sentence must be *useful* — it should demonstrate the word in a natural context and be at an appropriate difficulty level. Minor imperfections in a generated sentence are less damaging than a wrong definition, and the alternative (manually writing example sentences for every vocabulary item) does not scale.
+This is generative output. The model produces plausible, contextually appropriate content, but there is no guarantee that any particular sentence is grammatically perfect or that the translation is precisely correct. The output is probabilistic; run the same query twice and you may get different sentences.
 
 ### Why This Composition Matters
 
-The architecture is deliberately structured so that the deterministic layer provides the data the learner *depends on for correctness* (readings, meanings, kanji decomposition), while the probabilistic layer provides data that *enhances the learning experience* (example sentences, contextual usage). The generated content is always presented alongside the verified content, so the learner has a reliable reference point.
-
-This is a general pattern worth recognizing: **use AI generation where the cost of imperfection is low and the cost of manual effort is high, and use deterministic systems where correctness is non-negotiable.** Many practical AI applications follow this structure — [retrieval-augmented generation (RAG)](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) is a well-known instance of it, where a retrieval system provides factual grounding and a language model provides fluent synthesis.
+The architecture is structured so that the deterministic layer provides the data the learner depends on for correctness (readings, meanings, kanji decomposition), while the probabilistic layer provides data that enhances the learning experience (example sentences, contextual usage). The generated content is always presented alongside the verified content.
 
 ## Why Local-Only
 
-Every component in this system runs on your own machine. There are no API calls to cloud services, no data leaves your network, and no usage is metered or rate-limited. This is a deliberate architectural choice with specific trade-offs.
+Every component in this system runs on your own machine. There are no API calls to cloud services, no data leaves your network, and no usage is metered or rate-limited.
 
 ### What Runs Where
 
@@ -69,19 +65,19 @@ Every component in this system runs on your own machine. There are no API calls 
 | edge-tts (audio synthesis) | Microsoft Edge TTS service | Outbound HTTPS* |
 | AnkiConnect (flashcard insertion) | Local Anki instance | None (localhost only) |
 
-*\*edge-tts is the one exception — it calls Microsoft's TTS endpoint. This is a pragmatic compromise: local TTS options for Japanese exist but produce noticeably lower quality audio. The text sent to the TTS service is a single Japanese word or sentence, which is minimal in terms of data exposure. If this is unacceptable for your use case, local TTS alternatives are discussed in Chapter 5.*
+*\*edge-tts is an exception; it calls Microsoft's TTS endpoint; local TTS options for Japanese exist but produce noticeably lower quality audio and requires more setup with large chances of failure. The text sent to the TTS service is a single Japanese word or sentence, which is minimal in terms of data exposure. Local TTS alternatives are discussed in Chapter 5.*
 
 ### Privacy
 
-Language learning vocabulary reveals information about a person's interests, proficiency level, travel plans, and cultural engagement. A cloud-based flashcard generation service would accumulate a detailed profile of each user's learning trajectory. Running locally means this data stays on your filesystem.
+Language learning vocabulary reveals information about a person's interests, proficiency level, travel plans or cultural engagement. A cloud-based flashcard generation service or other services would accumulate a profile of each user's learning trajectory or interests. Running locally means this data stays on your own system.
 
 ### Latency and Availability
 
-Cloud API calls introduce network latency and depend on external service availability. Local inference through LM Studio has higher per-request latency (depending on your hardware), but it has zero network overhead and is available whenever your machine is on. There are no rate limits, no API quotas, and no degraded-service windows.
+Cloud API calls introduce network latency and depend on external service availability. Local inference through LM Studio has higher per-request latency (depending on your hardware), but it has zero network overhead and is available whenever your machine is on. There are no rate limits, API quotas or degraded service windows.
 
 ### Cost
 
-Cloud LLM APIs charge per token. If you're generating flashcards for hundreds of vocabulary items, the costs add up. Local inference has a one-time hardware cost (a capable GPU) and zero marginal cost per request. For a tool intended to be used daily as part of a language learning routine, the economics of local inference are favorable.
+Cloud LLM APIs charge per token. If you're generating flashcards for hundreds of vocabulary items, then the costs will add up. Local inference has a one-time hardware cost (a capable GPU) and a marginal cost per request. For a tool intended to be used daily as part of a language learning routine, local inference is favorable.
 
 ### Control
 
@@ -89,19 +85,9 @@ Running your own model means you can swap it out. If a new model handles Japanes
 
 ## System Architecture
 
-The system is structured as a **linear pipeline** — each stage takes input from the previous stage and produces output for the next. There are no branches, no conditional paths, and no feedback loops. This is the simplest possible architecture for a multi-stage system, and it is chosen deliberately.
+The system is structured as a linear pipeline; each stage takes input from the previous stage and produces output for the next. 
 
 ### Pipeline Stages
-
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  retriever   │────▶│     llm      │────▶│     tts      │────▶│  flashcard   │────▶│ anki_connect │
-│             │     │             │     │             │     │             │     │             │
-│  jamdict    │     │  LM Studio  │     │  edge-tts   │     │  formatting │     │  AnkiConnect│
-│  lookup     │     │  inference  │     │  synthesis  │     │  assembly   │     │  API        │
-└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
-     dict               dict              file paths           dict               note ID
-```
 
 Each module is a Python file in the `modules/` directory with a single public function:
 
@@ -115,19 +101,17 @@ Each module is a Python file in the `modules/` directory with a single public fu
 
 ### Data Flow
 
-The data flowing through the pipeline accumulates rather than transforms. The retriever produces dictionary data; the LLM module *adds* generated content to it rather than replacing it; the TTS module *adds* audio file paths; the flashcard module *combines* everything into a presentation format; and the AnkiConnect module *delivers* the result.
-
-This accumulative pattern means that each stage has access to all upstream data. The flashcard module can reference both the dictionary readings (from stage 1) and the generated sentence (from stage 2) when constructing the card. This is implemented simply by passing multiple arguments to downstream functions rather than trying to merge everything into a single evolving data structure.
+The data flowing through the pipeline accumulates rather than transforms. The retriever produces dictionary data; the LLM module adds generated content to it; the TTS module adds audio file paths; the flashcard module combines everything into a presentation format; and the AnkiConnect module delivers the result.
 
 ### Module Boundaries
 
-Each module depends on at most the Python standard library, its own specific third-party package, and the shared `config.py` file. Some modules use all three; `flashcard.py` uses none of them — it is a pure data transformation with zero imports. No module imports another module. The orchestration happens entirely in `main.py`, which imports all five modules and calls them in sequence.
+Each module depends on at most the Python standard library, its own specific third-party package, and the shared `config.py` file. Some modules use all three; `flashcard.py` uses none of them, it is pure data transformation with zero imports. No module imports another module. The orchestration happens entirely in `main.py`, which imports all five modules and calls them in sequence.
 
-This means any module can be tested, replaced, or modified in isolation. If you wanted to swap `jamdict` for a different dictionary backend, you would rewrite `retriever.py` to return the same dict shape and nothing else would change. If you wanted to use a cloud LLM instead of LM Studio, you would rewrite `llm.py`. The interface contracts are the dict shapes, not the implementations.
+This means any module can be tested, replaced, or modified in isolation. If you wanted to swap `jamdict` for a different dictionary backend, you would rewrite `retriever.py` to return the same dict shape and nothing else would change. If you want to use a cloud LLM instead of LM Studio, you would rewrite `llm.py`.
 
 ### Error Handling Strategy
 
-Errors in this pipeline are **fail-fast**. If the dictionary lookup finds no results, the program exits immediately with a message. If LM Studio is not running, the program exits. If AnkiConnect is not reachable, the program exits. There is no retry logic, no fallback behavior, and no partial output.
+Errors in this pipeline are fail-fast. If the dictionary lookup finds no results, the program exits immediately with a message. If LM Studio is not running, the program exits. If AnkiConnect is not reachable, the program exits. There is no retry logic, no fallback behavior, and no partial output.
 
 This is appropriate for a CLI tool run interactively by a human. The user can read the error message, fix the problem (start LM Studio, open Anki, correct the input word), and re-run the command. Adding retry logic or graceful degradation would add complexity without meaningfully improving the user experience for a single-word-at-a-time workflow.
 
@@ -157,7 +141,7 @@ This tutorial focuses on one specific system. The following topics are outside i
 - Cloud API integration (OpenAI, Anthropic, etc.)
 - Mobile Anki clients or AnkiWeb sync
 
-## What's Next
+## Structure
 
 The remaining chapters move from environment setup through each layer of the pipeline, building up to the fully integrated system.
 
