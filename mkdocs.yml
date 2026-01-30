@@ -1,0 +1,48 @@
+site_name: Anki Japanese Flashcard Generator
+site_description: A technical tutorial on building a hybrid AI flashcard generator
+site_url: https://mofumail.github.io/anki-gen/
+
+docs_dir: _build_docs
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - toc.integrate
+
+markdown_extensions:
+  - tables
+  - fenced_code
+  - codehilite
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+
+nav:
+  - Home: index.md
+  - 1. Introduction: chapter-01-introduction.md
+  - 2. Environment Setup: chapter-02-environment-setup.md
+  - 3. Retrieval: chapter-03-retrieval.md
+  - 4. Generative Logic: chapter-04-generative-logic.md
+  - 5. Local Media Generation: chapter-05-local-media-generation.md
+  - 6. Flashcard Construction & Anki: chapter-06-flashcard-construction-and-anki.md
+  - 7. End-to-End Integration: chapter-07-end-to-end-integration.md
+  - 8. Conclusion & Future Work: chapter-08-conclusion.md
