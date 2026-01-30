@@ -398,7 +398,7 @@ A successful call returns a dict with three keys:
 }
 ```
 
-The `vocab_translation` field is a concise gloss derived from the full meaning list. Where the retrieval module returns all dictionary senses ("to eat, to live on (e.g. a salary), to live off, to subsist on"), the LLM distills this to the primary meaning ("to eat"). This concise form works better on the front of a flashcard where space is limited.
+The `vocab_translation` field is a concise gloss derived from the full meaning list. Where the retrieval module returns all dictionary senses ("to eat, to live on (e.g. a salary), to live off, to subsist on"), the LLM distills this to the primary meaning ("to eat"). This concise form works better on a flashcard than a raw list of dictionary senses.
 
 The `example_sentence` is generated, not retrieved. Running the same query again may produce a different sentence. This is desirable — if you delete and re-create a flashcard, you get fresh content rather than a duplicate.
 

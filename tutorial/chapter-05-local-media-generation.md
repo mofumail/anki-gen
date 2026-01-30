@@ -73,7 +73,7 @@ def generate_audio(text: str, filename: str) -> str:
     return filepath
 ```
 
-This is the simplest async-to-sync bridge available. `asyncio.run()` was added in Python 3.7 specifically for this use case — running a single async entry point from synchronous code. It handles event loop creation, execution, and cleanup in one call.
+This is the simplest async-to-sync bridge available. `asyncio.run()` was added in Python 3.7 (our minimum supported version is 3.8) specifically for this use case — running a single async entry point from synchronous code. It handles event loop creation, execution, and cleanup in one call.
 
 The pipeline calls `generate_audio()` twice (once for the word, once for the sentence), which means `asyncio.run()` creates and destroys the event loop twice. This is slightly inefficient — reusing a single event loop would avoid the setup/teardown overhead — but the overhead is negligible compared to the network round-trip for TTS synthesis. Simplicity wins.
 

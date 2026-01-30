@@ -1,6 +1,6 @@
 # Chapter 7: End-to-End Integration
 
-This final chapter covers `main.py` — the orchestrator that wires all five modules into a single CLI command. The previous chapters examined each module in isolation: what it does, what it expects, and what it produces. This chapter is about what happens when they run together. The focus is on the pipeline's execution flow, how data moves between stages, how errors are handled across service boundaries, latency characteristics, and the construction of the final payload that reaches Anki.
+This chapter covers `main.py` — the orchestrator that wires all five modules into a single CLI command. The previous chapters examined each module in isolation: what it does, what it expects, and what it produces. This chapter is about what happens when they run together. The focus is on the pipeline's execution flow, how data moves between stages, how errors are handled across service boundaries, latency characteristics, and the construction of the final payload that reaches Anki.
 
 ## The Orchestrator's Role
 
@@ -12,7 +12,6 @@ This is a deliberate architectural constraint. The orchestrator is the one place
 
 ```python
 import argparse
-import os
 import re
 import sys
 
@@ -339,7 +338,7 @@ Flashcard added successfully! (Note ID: 1769778487044)
 
 With all seven chapters complete, it is worth stepping back to see the full system as a single unit.
 
-The project implements a five-stage linear pipeline that combines deterministic retrieval with probabilistic generation. The retrieval layer (Chapter 3) provides the factual foundation — verified dictionary data that the learner can trust. The generative layer (Chapter 4) provides contextual enrichment — example sentences that make vocabulary items memorable. The media layer (Chapter 5) provides audio — pronunciation models that support listening and speaking practice. The assembly layer (Chapter 6) formats everything for Anki's consumption, and the delivery layer (Chapter 6) pushes it into the learner's review queue.
+The project implements a five-stage linear pipeline that combines deterministic retrieval with probabilistic generation. The retrieval layer (Chapter 3) provides the factual foundation — verified dictionary data that the learner can trust. The generative layer (Chapter 4) provides contextual enrichment — example sentences that make vocabulary items memorable. The media layer (Chapter 5) provides audio — pronunciation models that support listening and speaking practice. The assembly and delivery layers (Chapter 6) format everything for Anki's consumption and push it into the learner's review queue.
 
 Each layer is implemented as a Python module with a single public function. The modules do not import each other. The orchestrator (`main.py`) is the only file that knows about all of them, and it does nothing beyond calling them in order and passing data between them.
 

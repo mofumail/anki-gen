@@ -36,7 +36,7 @@ touch modules/tts.py modules/flashcard.py modules/anki_connect.py
 
 ### Version Requirements
 
-The project requires **Python 3.8 or later**. The minimum version is set by `asyncio.run()`, which was introduced in Python 3.8 and is used by the TTS module. The code has been tested on Python 3.8 and 3.13.
+The project requires **Python 3.8 or later**. The minimum version is set by `asyncio.run()`, which was introduced in Python 3.7, but 3.8 is the minimum we support due to improvements in asyncio's event loop handling. The TTS module uses `asyncio.run()` to bridge async and sync code. The code has been tested on Python 3.8 and 3.13.
 
 Check your installed version:
 
@@ -291,7 +291,7 @@ ANKI_NOTE_TYPE = "Basic"
 AUDIO_DIR = "audio/"
 ```
 
-Six constants, all pointing to local resources. Every module in the project imports this file to resolve endpoints and paths. There is no environment variable parsing, no `.env` file loading, and no runtime configuration. If you need to change a value, you edit this file and re-run the tool.
+Six constants, all pointing to local resources. Modules that communicate with external services (`llm.py`, `tts.py`, `anki_connect.py`) import this file to resolve endpoints and paths. There is no environment variable parsing, no `.env` file loading, and no runtime configuration. If you need to change a value, you edit this file and re-run the tool.
 
 `AUDIO_DIR` is a relative path. Generated `.mp3` files are written here during the TTS stage, then read back during the AnkiConnect stage (to base64-encode and upload them to Anki's media folder). The directory is created automatically if it does not exist.
 

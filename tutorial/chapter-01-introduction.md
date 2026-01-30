@@ -65,7 +65,7 @@ Every component in this system runs on your own machine. There are no API calls 
 | edge-tts (audio synthesis) | Microsoft Edge TTS service | Outbound HTTPS* |
 | AnkiConnect (flashcard insertion) | Local Anki instance | None (localhost only) |
 
-*\*edge-tts is the one exception — it calls Microsoft's TTS endpoint. This is a pragmatic compromise: local TTS options for Japanese exist but produce noticeably lower quality audio. The text sent to the TTS service is a single Japanese word or sentence, which is minimal in terms of data exposure. If this is unacceptable for your use case, local TTS alternatives are discussed in the TTS module chapter.*
+*\*edge-tts is the one exception — it calls Microsoft's TTS endpoint. This is a pragmatic compromise: local TTS options for Japanese exist but produce noticeably lower quality audio. The text sent to the TTS service is a single Japanese word or sentence, which is minimal in terms of data exposure. If this is unacceptable for your use case, local TTS alternatives are discussed in Chapter 5.*
 
 ### Privacy
 
@@ -117,7 +117,7 @@ This accumulative pattern means that each stage has access to all upstream data.
 
 ### Module Boundaries
 
-Each module depends only on the Python standard library, its own specific third-party package, and the shared `config.py` file. No module imports another module. The orchestration happens entirely in `main.py`, which imports all five modules and calls them in sequence.
+Each module depends on at most the Python standard library, its own specific third-party package, and the shared `config.py` file. Some modules use all three; `flashcard.py` uses none of them — it is a pure data transformation with zero imports. No module imports another module. The orchestration happens entirely in `main.py`, which imports all five modules and calls them in sequence.
 
 This means any module can be tested, replaced, or modified in isolation. If you wanted to swap `jamdict` for a different dictionary backend, you would rewrite `retriever.py` to return the same dict shape and nothing else would change. If you wanted to use a cloud LLM instead of LM Studio, you would rewrite `llm.py`. The interface contracts are the dict shapes, not the implementations.
 
@@ -152,3 +152,4 @@ The remaining chapters move from environment setup through each layer of the pip
 - **Chapter 5: Local Media Generation** — Implementing text-to-speech audio synthesis with edge-tts. Covers async audio generation, normalization standards, and handling of file paths for media linkage in Anki.
 - **Chapter 6: Flashcard Construction and Anki Injection** — Assembling the outputs from prior stages into Anki-compatible flashcard fields, and delivering them via the AnkiConnect protocol including media file storage.
 - **Chapter 7: End-to-End Integration** — The final technical chapter. Covers orchestration of all components into a single CLI pipeline, error handling across service boundaries, latency considerations, and construction of the final payload for injection into Anki.
+- **Chapter 8: Conclusion and Future Work** — Summary of the implemented architecture, local vs. cloud trade-offs, and suggestions for technical extensions.

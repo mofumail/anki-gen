@@ -313,7 +313,7 @@ The data flow between them is one-way and simple: `build_flashcard()` produces a
 
 ## What Gets Sent to Anki
 
-For the input word 食べる, after all pipeline stages complete, AnkiConnect receives three API calls:
+For the input word 食べる, after all pipeline stages complete, AnkiConnect receives four API calls:
 
 **1. Create deck** (if needed):
 ```json
