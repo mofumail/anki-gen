@@ -6,7 +6,7 @@ This chapter covers the third stage of the pipeline — converting text into aud
 
 ### What It Is
 
-`edge-tts` is a Python package that interfaces with Microsoft Edge's online text-to-speech service. It uses the same WebSocket-based protocol that the Edge browser uses for its built-in Read Aloud feature. The service is free, requires no API key, and supports a wide range of voices across many languages.
+[`edge-tts`](https://github.com/rany2/edge-tts) is a Python package that interfaces with Microsoft Edge's online text-to-speech service. It uses the same WebSocket-based protocol that the Edge browser uses for its built-in Read Aloud feature. The service is free, requires no API key, and supports a wide range of voices across many languages.
 
 For Japanese, the service provides several neural voices. Neural TTS voices are trained on deep learning models rather than concatenated from pre-recorded speech fragments, which produces more natural prosody, pitch accent, and rhythm — all of which matter significantly for Japanese language learning.
 
@@ -14,7 +14,7 @@ For Japanese, the service provides several neural voices. Neural TTS voices are 
 
 The chapter title says "local media generation," and most of this project's architecture avoids network calls. edge-tts is the exception — it sends text to Microsoft's endpoint and receives audio back. This is a pragmatic trade-off.
 
-Fully local TTS options for Japanese exist. Projects like VOICEVOX and Style-BERT-VITS2 can run entirely on your machine and produce high-quality Japanese speech. However, they require:
+Fully local TTS options for Japanese exist. Projects like [VOICEVOX](https://voicevox.hiroshiba.jp/) and [Style-BERT-VITS2](https://github.com/litagin02/Style-Bert-VITS2) can run entirely on your machine and produce high-quality Japanese speech. However, they require:
 
 - Downloading and running a separate inference server (VOICEVOX is ~1–2 GB)
 - GPU resources that compete with LM Studio for VRAM

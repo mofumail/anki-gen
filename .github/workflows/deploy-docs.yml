@@ -31,6 +31,7 @@ jobs:
           mkdir -p _build_docs
           cp docs-index.md _build_docs/index.md
           cp tutorial/*.md _build_docs/
+          cp -r imgs/ _build_docs/imgs/
 
       - name: Build site
         run: mkdocs build --strict

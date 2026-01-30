@@ -158,7 +158,7 @@ The `jamdict` import will take a moment on first run as it locates the database 
 
 ## LM Studio
 
-LM Studio is a desktop application that runs large language models locally and exposes them through an OpenAI-compatible HTTP API. Our `llm.py` module sends requests to this API.
+LM Studio is a desktop application that runs large language models locally and exposes them through an OpenAI-compatible HTTP API. Our `llm.py` module sends requests to this API. It's not required to use LMStudio, as any OpenAI-compatible LLM-service will work, but this tutorial will assume LMStudio is used, as it provides an easy overview to see what model you can and cannot run, as well as GPU off-loading and easy access to quantizations.
 
 ### Installation
 
@@ -227,7 +227,7 @@ Download Anki from [apps.ankiweb.net](https://apps.ankiweb.net). Install and lau
 
 ### Installing AnkiConnect
 
-AnkiConnect is a third-party Anki add-on that exposes a JSON-over-HTTP API on `localhost:8765`. Our `anki_connect.py` module uses this API to create decks, store media files, and add notes.
+[AnkiConnect](https://foosoft.net/projects/anki-connect/) is a third-party Anki add-on that exposes a JSON-over-HTTP API on `localhost:8765`. Our `anki_connect.py` module uses this API to create decks, store media files, and add notes.
 
 To install:
 

@@ -121,14 +121,11 @@ The back of the card is built from a list of strings joined with `<br>` (HTML li
 to eat<br><br>彼は毎日ご飯を食べます。 [sound:食べる_sentence.mp3]<br>He eats rice every day.
 ```
 
-Which Anki renders as:
+Here is what an actual generated card looks like in Anki (for the word 輪廻):
 
-```
-to eat
+![Front of card](imgs/front.png)
 
-彼は毎日ご飯を食べます。 ▶
-He eats rice every day.
-```
+![Back of card](imgs/back.png)
 
 The empty string `""` in `back_parts` produces a blank line (an extra `<br>`) between the meaning and the example sentence. This visual separation helps the learner distinguish the definition from the contextual example.
 
@@ -156,7 +153,7 @@ This pass-through is a deliberate design choice. The flashcard dict is self-cont
 
 ### The AnkiConnect Protocol
 
-AnkiConnect exposes Anki's functionality through a JSON-over-HTTP API on `localhost:8765`. Every request follows the same format:
+[AnkiConnect](https://foosoft.net/projects/anki-connect/) exposes Anki's functionality through a JSON-over-HTTP API on `localhost:8765`. Every request follows the same format:
 
 ```json
 {

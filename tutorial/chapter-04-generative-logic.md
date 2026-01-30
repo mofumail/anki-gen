@@ -27,11 +27,11 @@ Models that work well for this task, listed by parameter count:
 
 | Model | Parameters | Japanese Quality | Notes |
 |-------|-----------|-----------------|-------|
-| Qwen2.5-7B-Instruct | 7B | Excellent | Strong multilingual training, reliable JSON output |
-| Qwen2.5-14B-Instruct | 14B | Excellent | Better sentence variety, needs more VRAM |
-| Mistral-7B-Instruct | 7B | Good | Solid instruction following, occasionally awkward Japanese |
-| Llama-3.1-8B-Instruct | 8B | Good | Reliable structured output, Japanese is functional but not native-quality |
-| Gemma-2-9B-Instruct | 9B | Good | Google's multilingual model, good balance |
+| [Qwen2.5-7B-Instruct](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct) | 7B | Excellent | Strong multilingual training, reliable JSON output |
+| [Qwen2.5-14B-Instruct](https://huggingface.co/Qwen/Qwen2.5-14B-Instruct) | 14B | Excellent | Better sentence variety, needs more VRAM |
+| [Mistral-7B-Instruct](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3) | 7B | Good | Solid instruction following, occasionally awkward Japanese |
+| [Llama-3.1-8B-Instruct](https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct) | 8B | Good | Reliable structured output, Japanese is functional but not native-quality |
+| [Gemma-2-9B-Instruct](https://huggingface.co/google/gemma-2-9b-it) | 9B | Good | Google's multilingual model, good balance |
 
 The Qwen2.5 family is the strongest recommendation for this specific task. Alibaba's training data includes substantial Chinese and Japanese text, and the instruction-tuned variants follow JSON output instructions consistently.
 
@@ -43,7 +43,7 @@ LLMs in their original form use 16-bit floating point weights (FP16 or BF16). A 
 
 Quantization maps the continuous range of weight values to a smaller set of discrete levels. In 4-bit quantization, each weight is represented by one of 16 possible values instead of one of 65,536 (FP16). The quantization algorithm chooses these 16 levels to minimize the information loss for each layer of the model.
 
-Modern quantization methods (GPTQ, AWQ, and the GGUF format used by llama.cpp and LM Studio) apply quantization non-uniformly — more important layers or weight matrices may be kept at higher precision while less sensitive ones are quantized more aggressively. This is why you see labels like `Q4_K_M` rather than a simple "4-bit": the `K` indicates k-quant grouping, and the `M` indicates a "medium" mix of precisions across layers.
+Modern quantization methods (GPTQ, AWQ, and the [GGUF format](https://github.com/ggerganov/llama.cpp) used by llama.cpp and LM Studio) apply quantization non-uniformly — more important layers or weight matrices may be kept at higher precision while less sensitive ones are quantized more aggressively. This is why you see labels like `Q4_K_M` rather than a simple "4-bit": the `K` indicates k-quant grouping, and the `M` indicates a "medium" mix of precisions across layers.
 
 #### Quantization Levels
 
@@ -207,7 +207,7 @@ This is a general principle: **give the model exactly the context it needs and n
 "response_format": {"type": "json_object"}
 ```
 
-The `response_format` parameter is an OpenAI API feature that constrains the model's output to valid JSON. When active, the inference engine modifies the sampling process to ensure that every generated token produces a valid JSON string. Specifically:
+The `response_format` parameter is an [OpenAI API feature](https://platform.openai.com/docs/api-reference/chat/create#chat-create-response_format) that constrains the model's output to valid JSON. When active, the inference engine modifies the sampling process to ensure that every generated token produces a valid JSON string. Specifically:
 
 - The output always begins with `{` or `[`
 - String values are properly quoted and escaped

@@ -10,7 +10,7 @@ This tutorial walks through building a command-line tool that generates Japanese
 4. Formats everything into a flashcard
 5. Pushes the flashcard into Anki via its local API
 
-The end result is a five-stage pipeline that turns a Japanese word into a complete, audio-equipped Anki flashcard in a single command:
+The end result is a pipeline that turns a Japanese word into a complete, audio-equipped Anki flashcard in a single command:
 
 ```
 python main.py 食べる
@@ -18,13 +18,17 @@ python main.py 食べる
 
 The tool is interesting not because of what it produces — you could make flashcards by hand — but because of *how* it produces them. The architecture combines deterministic data retrieval with probabilistic AI generation, runs entirely on local infrastructure, and coordinates multiple independent services through a linear pipeline. These are patterns worth understanding in detail.
 
+## Who This Tutorial Is For
+
+This tutorial assumes you are comfortable writing Python (standard library usage, pip, dicts, type hints), familiar with REST APIs at a practical level (HTTP methods, JSON payloads, calling localhost services), and have a conceptual understanding of what large language models do — though not how to train or fine-tune them. Basic comfort with command-line tools is expected throughout.
+
 ## Hybrid AI: Deterministic Ground Truth Meets Probabilistic Generation
 
 The term "hybrid AI" gets used loosely, but here it refers to something specific: a system where some components produce *deterministic, verifiable outputs* and others produce *probabilistic, generated outputs*, and the two are composed together deliberately.
 
 ### The Deterministic Layer
 
-The first stage of the pipeline queries **JMdict** and **KANJIDIC2** — two established, community-maintained Japanese dictionary databases — through the `jamdict` library. This is a conventional database lookup. Given the input `食べる`, it returns:
+The first stage of the pipeline queries **[JMdict](https://www.edrdg.org/jmdict/j_jmdict.html)** and **[KANJIDIC2](https://www.edrdg.org/wiki/index.php/KANJIDIC_Project)** — two established, community-maintained Japanese dictionary databases managed by the [Electronic Dictionary Research and Development Group (EDRDG)](https://www.edrdg.org/) — through the `jamdict` library. This is a conventional database lookup. Given the input `食べる`, it returns:
 
 - **Readings**: たべる
 - **Meanings**: to eat, to live on (e.g. a salary), to live off, to subsist on
@@ -50,7 +54,7 @@ This is an acceptable trade-off because example sentences serve a different peda
 
 The architecture is deliberately structured so that the deterministic layer provides the data the learner *depends on for correctness* (readings, meanings, kanji decomposition), while the probabilistic layer provides data that *enhances the learning experience* (example sentences, contextual usage). The generated content is always presented alongside the verified content, so the learner has a reliable reference point.
 
-This is a general pattern worth recognizing: **use AI generation where the cost of imperfection is low and the cost of manual effort is high, and use deterministic systems where correctness is non-negotiable.** Many practical AI applications follow this structure — retrieval-augmented generation (RAG) is a well-known instance of it, where a retrieval system provides factual grounding and a language model provides fluent synthesis.
+This is a general pattern worth recognizing: **use AI generation where the cost of imperfection is low and the cost of manual effort is high, and use deterministic systems where correctness is non-negotiable.** Many practical AI applications follow this structure — [retrieval-augmented generation (RAG)](https://en.wikipedia.org/wiki/Retrieval-augmented_generation) is a well-known instance of it, where a retrieval system provides factual grounding and a language model provides fluent synthesis.
 
 ## Why Local-Only
 
@@ -141,6 +145,17 @@ AUDIO_DIR = "audio/"
 ```
 
 These are not read from environment variables or a config file. For a single-user local tool, plain constants in a Python file are the simplest configuration mechanism — they are easy to read, easy to change, and require no parsing logic.
+
+## What This Tutorial Does Not Cover
+
+This tutorial focuses on one specific system. The following topics are outside its scope:
+
+- Fine-tuning or training language models
+- Anki card template design or custom CSS styling
+- Production deployment (web services, containerization, CI/CD)
+- Automated testing or test frameworks
+- Cloud API integration (OpenAI, Anthropic, etc.)
+- Mobile Anki clients or AnkiWeb sync
 
 ## What's Next
 

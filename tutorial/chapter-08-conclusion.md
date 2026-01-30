@@ -80,7 +80,7 @@ This project chose a local-first architecture. That choice has consequences wort
 
 This project lands on a pragmatic middle ground: local for everything except TTS, where the quality gap is too large to ignore and the data exposure is minimal. This is not a principled stance — it is an engineering judgment about where the trade-offs fall for this specific use case. A different project with different constraints might draw the line differently.
 
-The architecture makes it easy to move individual modules between local and cloud. Swapping the LLM module from LM Studio to an OpenAI API call requires changing the URL and adding an API key header — the rest of the pipeline is unchanged. Swapping edge-tts for a local VOICEVOX server requires changing the TTS module's internals while keeping the same `generate_audio(text, filename) -> path` interface. The module boundaries were designed to make these substitutions low-cost.
+The architecture makes it easy to move individual modules between local and cloud. Swapping the LLM module from LM Studio to an OpenAI API call requires changing the URL and adding an API key header — the rest of the pipeline is unchanged. Swapping edge-tts for a local [VOICEVOX](https://voicevox.hiroshiba.jp/) server requires changing the TTS module's internals while keeping the same `generate_audio(text, filename) -> path` interface. The module boundaries were designed to make these substitutions low-cost.
 
 ## Future Work
 
@@ -120,7 +120,7 @@ The difficulty target could be inferred from the word itself — JMdict includes
 
 ### Symbolic Validation of Generated Sentences
 
-An earlier design for this project included a dedicated validation stage between LLM generation and flashcard assembly. The idea was to run the generated Japanese sentence through a morphological analyzer — such as MeCab or Sudachi — to decompose it into tokens with part-of-speech tags, dictionary forms, and reading annotations. This structured parse would enable automated checks: verifying that the target word actually appears in the sentence, calculating a difficulty score based on the grammar patterns and vocabulary used, and flagging sentences that exceed a target JLPT level.
+An earlier design for this project included a dedicated validation stage between LLM generation and flashcard assembly. The idea was to run the generated Japanese sentence through a morphological analyzer — such as [MeCab](https://taku910.github.io/mecab/) or [Sudachi](https://github.com/WorksApplications/Sudachi) — to decompose it into tokens with part-of-speech tags, dictionary forms, and reading annotations. This structured parse would enable automated checks: verifying that the target word actually appears in the sentence, calculating a difficulty score based on the grammar patterns and vocabulary used, and flagging sentences that exceed a target JLPT level.
 
 This was scoped out of the current implementation for two reasons. First, the practical value is limited at the current scale of usage. When the tool generates one flashcard at a time and the user sees the sentence in the terminal output before it reaches Anki, manual inspection is a sufficient quality gate. The cost of symbolic validation — additional dependencies (MeCab requires a C library and a dictionary, Sudachi requires a Java runtime or its Rust port), platform-specific installation complexity, and the non-trivial logic of mapping morphological parses to difficulty metrics — is not justified by the error rate of modern instruction-tuned models on simple sentence generation tasks.
 
@@ -130,13 +130,13 @@ That said, symbolic validation becomes more compelling if the tool is extended t
 
 ### Image Generation
 
-The flashcard could include a generated image illustrating the word's meaning. Local image generation through Stable Diffusion (via tools like ComfyUI or AUTOMATIC1111) follows the same localhost API pattern as LM Studio. A new module — `image.py` — would take the word and meaning, construct an image prompt, call the local diffusion server, and return a file path. The flashcard module would add an `<img>` tag to the card fields, and the AnkiConnect module would upload the image alongside the audio files.
+The flashcard could include a generated image illustrating the word's meaning. Local image generation through Stable Diffusion (via tools like [ComfyUI](https://github.com/comfyanonymous/ComfyUI) or [AUTOMATIC1111](https://github.com/AUTOMATIC1111/stable-diffusion-webui)) follows the same localhost API pattern as LM Studio. A new module — `image.py` — would take the word and meaning, construct an image prompt, call the local diffusion server, and return a file path. The flashcard module would add an `<img>` tag to the card fields, and the AnkiConnect module would upload the image alongside the audio files.
 
 The trade-off is generation time (10–30 seconds per image on a mid-range GPU) and VRAM contention with the LLM. Running both a language model and a diffusion model simultaneously requires either a high-VRAM GPU (24 GB+) or sequential loading/unloading.
 
 ### Pronunciation Assessment
 
-A more ambitious extension: after generating audio for the word, record the learner's own pronunciation attempt and compare it to the reference. Libraries like `whisper` (for speech-to-text) running locally could transcribe the learner's audio, and the comparison between the transcription and the expected reading would provide basic pronunciation feedback.
+A more ambitious extension: after generating audio for the word, record the learner's own pronunciation attempt and compare it to the reference. Libraries like [`whisper`](https://github.com/openai/whisper) (for speech-to-text) running locally could transcribe the learner's audio, and the comparison between the transcription and the expected reading would provide basic pronunciation feedback.
 
 This would shift the tool from a flashcard generator to an interactive study aid, which is a significant scope change. The architecture supports it — a new module could be added to the pipeline without modifying existing modules — but the user interface would need to move beyond a single CLI command.
 
@@ -154,9 +154,9 @@ This would turn the tool from a manual card creator into an automated deck build
 
 jamdict provides access to JMdict and KANJIDIC2, but other dictionary sources exist:
 
-- **JMnedict** — Japanese proper names (already partially available through jamdict)
-- **Tatoeba** — A corpus of example sentences with translations, which could supplement or replace LLM-generated sentences with human-written ones
-- **EDICT frequency data** — Word frequency rankings that could inform difficulty calibration
+- **[JMnedict](https://www.edrdg.org/enamdict/enamdict_doc.html)** — Japanese proper names (already partially available through jamdict)
+- **[Tatoeba](https://tatoeba.org)** — A corpus of example sentences with translations, which could supplement or replace LLM-generated sentences with human-written ones
+- **[EDICT frequency data](https://www.edrdg.org/wiki/index.php/EDICT)** — Word frequency rankings that could inform difficulty calibration
 
 Adding a new dictionary source would mean adding a new retriever (or extending the existing one) and merging its output into the `vocab_info` dict. The downstream modules would consume the additional data if present and ignore it if absent, preserving backward compatibility.
 
@@ -164,8 +164,8 @@ Adding a new dictionary source would mean adding a new retriever (or extending t
 
 As discussed in Chapter 5, edge-tts is the one external network dependency. Replacing it with a fully local alternative would make the tool completely offline-capable. Candidates:
 
-- **VOICEVOX** — Open-source Japanese TTS with a REST API, good voice quality, requires ~1–2 GB of disk space and a GPU for real-time synthesis
-- **Style-BERT-VITS2** — Higher quality but more complex setup, supports custom voice training
-- **Piper** — Lightweight, CPU-friendly TTS with Japanese voice support, lower quality than neural alternatives but fast and truly local
+- **[VOICEVOX](https://voicevox.hiroshiba.jp/)** — Open-source Japanese TTS with a REST API, good voice quality, requires ~1–2 GB of disk space and a GPU for real-time synthesis
+- **[Style-BERT-VITS2](https://github.com/litagin02/Style-Bert-VITS2)** — Higher quality but more complex setup, supports custom voice training
+- **[Piper](https://github.com/rhasspy/piper)** — Lightweight, CPU-friendly TTS with Japanese voice support, lower quality than neural alternatives but fast and truly local
 
 The `generate_audio(text, filename) -> path` interface was designed to make this substitution a contained change within `tts.py`.

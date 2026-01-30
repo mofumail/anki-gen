@@ -6,15 +6,15 @@ This chapter covers the first stage of the pipeline — looking up a Japanese wo
 
 The retrieval module queries two databases, both accessed through the `jamdict` Python library:
 
-**JMdict** (Japanese-Multilingual Dictionary) is a machine-readable Japanese-English dictionary maintained by the Electronic Dictionary Research and Development Group (EDRDG). It has been actively maintained since 1991 and contains over 200,000 entries. Each entry includes:
+**[JMdict](https://www.edrdg.org/jmdict/j_jmdict.html)** (Japanese-Multilingual Dictionary) is a machine-readable Japanese-English dictionary maintained by the [Electronic Dictionary Research and Development Group (EDRDG)](https://www.edrdg.org/). It has been actively maintained since 1991 and contains over 200,000 entries. Each entry includes:
 
 - Kanji representations of the word (e.g., 食べる)
 - Kana readings (e.g., たべる)
 - Sense groups, each containing English glosses, part-of-speech tags, usage notes, and field/dialect markers
 
-JMdict is the data source behind most Japanese-English dictionary apps and websites. If you have used Jisho.org, you have queried JMdict.
+JMdict is the data source behind most Japanese-English dictionary apps and websites. If you have used [Jisho.org](https://jisho.org), you have queried JMdict.
 
-**KANJIDIC2** is a companion database containing information about individual kanji characters. For each of the 13,000+ kanji it covers, it provides:
+**[KANJIDIC2](https://www.edrdg.org/wiki/index.php/KANJIDIC_Project)** is a companion database containing information about individual kanji characters. For each of the 13,000+ kanji it covers, it provides:
 
 - On'yomi and kun'yomi readings
 - English meanings
@@ -29,7 +29,7 @@ These two databases serve different lookup patterns. When a user enters a multi-
 
 ### What It Does for Us
 
-`jamdict` is a Python package that bundles JMdict and KANJIDIC2 into a local SQLite database and provides a query API on top of it. Without `jamdict`, we would need to:
+[`jamdict`](https://github.com/neocl/jamdict) is a Python package that bundles JMdict and KANJIDIC2 into a local SQLite database and provides a query API on top of it. Without `jamdict`, we would need to:
 
 1. Download the raw XML files from EDRDG (JMdict is ~75 MB of XML)
 2. Parse the XML into a usable structure
