@@ -12,7 +12,7 @@ For Japanese, the service provides several neural voices. Neural TTS voices are 
 
 ### Why Not Fully Local TTS?
 
-The chapter title says "local media generation," and most of this project's architecture avoids network calls. edge-tts is the exception, it sends text to Microsoft's endpoint and receives audio back. This is a pragmatic trade-off.
+The chapter title says "local media generation," and most of this project's architecture avoids network calls. edge-tts is the exception, it sends text to Microsoft's endpoint and receives audio back.
 
 Fully local TTS options for Japanese exist. Projects like [VOICEVOX](https://voicevox.hiroshiba.jp/) and [Style-BERT-VITS2](https://github.com/litagin02/Style-Bert-VITS2) can run entirely on your machine and produce high-quality Japanese speech. However, they require:
 
@@ -20,7 +20,7 @@ Fully local TTS options for Japanese exist. Projects like [VOICEVOX](https://voi
 - GPU resources that compete with LM Studio for VRAM
 - Additional setup that varies by platform
 
-edge-tts requires none of this, it is a single `pip install` with no system dependencies. The data exposure is minimal: the only text sent to Microsoft's servers is the vocabulary word and one example sentence, with no user-identifying information attached. For a language learning tool, this is an acceptable compromise.
+edge-tts requires none of this, it is a single `pip install` with no system dependencies. The data exposure is minimal: the only text sent to Microsoft's servers is the vocabulary word and one example sentence, with no user-identifying information attached.
 
 If local-only operation is a hard requirement for your use case, the module's interface makes substitution straightforward. `generate_audio(text, filename)` takes a string and returns a file path, any TTS backend that can write an audio file to disk is a drop-in replacement. The rest of the pipeline does not know or care how the audio was produced.
 
