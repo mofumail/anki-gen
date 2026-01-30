@@ -1,6 +1,6 @@
 # Chapter 2: Environment Setup
 
-This chapter covers everything you need to install and configure before writing any application code. By the end, you will have a working Python environment with all dependencies, a local LLM inference server, and the Anki ecosystem ready to receive flashcards programmatically.
+This chapter covers installing and configuring before writing any application code. By the end, you will have a working Python environment with all dependencies, a local LLM inference server, and the Anki ecosystem ready to receive flashcards programmatically.
 
 ## Project Structure
 
@@ -36,7 +36,7 @@ touch modules/tts.py modules/flashcard.py modules/anki_connect.py
 
 ### Version Requirements
 
-The project requires **Python 3.8 or later**. The minimum version is set by `asyncio.run()`, which was introduced in Python 3.7, but 3.8 is the minimum we support due to improvements in asyncio's event loop handling. The TTS module uses `asyncio.run()` to bridge async and sync code. The code has been tested on Python 3.8 and 3.13.
+The project requires **Python 3.8 or later**. The code has been tested on Python 3.8 and 3.13.
 
 Check your installed version:
 
@@ -51,11 +51,11 @@ python3 --version
 py --version
 ```
 
-If you need to install Python, download it from [python.org](https://www.python.org/downloads/) or install it from the Microsoft Store on Windows. Either method works — the Microsoft Store version installs to a user-local path and does not require administrator privileges.
+If you need to install Python, download it from [python.org](https://www.python.org/downloads/) or install it from the Microsoft Store on Windows. Either method works, the Microsoft Store version installs to a user-local path and does not require administrator privileges.
 
 ### Virtual Environments
 
-For a single-user local tool like this, a virtual environment is optional but not harmful. If you prefer to isolate dependencies:
+For a single-user local tool like this, a virtual environment is optional. If you prefer to isolate dependencies:
 
 ```bash
 python -m venv venv
@@ -72,9 +72,9 @@ source venv/bin/activate
 
 If you skip the virtual environment, `pip install` will install packages to your user site-packages directory. This is fine for a project with only four dependencies that are unlikely to conflict with anything else on your system.
 
-### A Note on Containerization
+### Containerization
 
-A project like this is a poor candidate for containerization. The pipeline depends on two localhost services — LM Studio and Anki — that run as desktop GUI applications on the host machine. Putting the Python code inside a Docker container would require exposing those host ports into the container, mounting volumes for audio files, and dealing with cross-platform path differences. The complexity would exceed the benefit.
+A project like this is a poor candidate for containerization. The pipeline depends on two localhost services, LM Studio and Anki, that run as desktop GUI applications on the host machine. Putting the Python code inside a Docker container would require exposing those host ports into the container, mounting volumes for audio files, and dealing with cross-platform path differences.
 
 The reproducibility problem that containers solve is better addressed here by pinning dependency versions in `requirements.txt` if needed. The project has four direct dependencies and all of them are stable, well-maintained packages.
 
@@ -158,7 +158,7 @@ The `jamdict` import will take a moment on first run as it locates the database 
 
 ## LM Studio
 
-LM Studio is a desktop application that runs large language models locally and exposes them through an OpenAI-compatible HTTP API. Our `llm.py` module sends requests to this API. It's not required to use LMStudio, as any OpenAI-compatible LLM-service will work, but this tutorial will assume LMStudio is used, as it provides an easy overview to see what model you can and cannot run, as well as GPU off-loading and easy access to quantizations.
+LM Studio is a desktop application that runs large language models locally and exposes them through an OpenAI-compatible HTTP API. The `llm.py` module sends requests to this API. It's not required to use LMStudio, as any OpenAI-compatible LLM-service will work, but this tutorial will assume LMStudio is used, as it provides an easy overview to see what model you can and cannot run, as well as GPU off-loading and easy access to quantizations.
 
 ### Installation
 
@@ -173,10 +173,10 @@ After launching LM Studio, you need to download and load a model. From the home 
    - `Mistral-7B-Instruct` — reliable general-purpose instruction following
    - `Llama-3.1-8B-Instruct` — solid baseline with good structured output
 
-2. Select a **quantization level**. Quantization compresses the model to use less memory at the cost of some quality. Common levels:
-   - `Q4_K_M` — good balance of quality and memory usage (~4–5 GB for a 7B model)
-   - `Q5_K_M` — slightly better quality, slightly more memory
-   - `Q8_0` — near-original quality, ~2x the memory of Q4
+2. Select a quantization level. Quantization compresses the model to use less memory at the cost of some quality. Common levels:
+   - `Q4_K_M` - good balance of quality and memory usage (~4–5 GB for a 7B model)
+   - `Q5_K_M` - slightly better quality, slightly more memory
+   - `Q8_0` - near-original quality, ~2x the memory of Q4
 
    If your GPU has 8 GB of VRAM, a 7B model at Q4_K_M will fit comfortably. If you have 16 GB or more, you can run larger models or higher quantization levels.
 
@@ -186,7 +186,7 @@ After launching LM Studio, you need to download and load a model. From the home 
 
 Once a model is loaded:
 
-1. Navigate to the **Local Server** tab (in the left sidebar or top menu, depending on your LM Studio version).
+1. Navigate to the **Local Server** tab (in the left sidebar).
 2. Select the model you downloaded.
 3. Click **Start Server**.
 
@@ -204,7 +204,7 @@ r = requests.get("http://localhost:1234/v1/models")
 print(r.json())
 ```
 
-This should return a JSON response listing the loaded model. The exact model name does not matter for our purposes — the `config.py` file uses `"local-model"` as a placeholder, and LM Studio routes to whatever model is currently loaded regardless of the name in the request.
+This should return a JSON response listing the loaded model. The exact model name does not matter, the `config.py` file uses `"local-model"` as a placeholder, and LM Studio routes to whatever model is currently loaded regardless of the name in the request.
 
 ### Configuration
 
@@ -215,7 +215,7 @@ LM_STUDIO_URL = "http://localhost:1234/v1/chat/completions"
 LM_STUDIO_MODEL = "local-model"
 ```
 
-`LM_STUDIO_URL` points to the chat completions endpoint, which follows the OpenAI API format. `LM_STUDIO_MODEL` is sent in the request body — LM Studio requires the field to be present but ignores its value, always routing to the loaded model.
+`LM_STUDIO_URL` points to the chat completions endpoint, which follows the OpenAI API format. `LM_STUDIO_MODEL` is sent in the request body, LM Studio requires the field to be present but ignores its value, always routing to the loaded model.
 
 If you changed the port in LM Studio's server settings, update `LM_STUDIO_URL` accordingly.
 
@@ -251,7 +251,7 @@ print(r.json())  # {"result": 6, "error": null}
 
 ### Note Types and Deck Configuration
 
-Our tool uses the `Basic` note type, which ships with every Anki installation. It has two fields: `Front` and `Back`. The flashcard module writes HTML into these fields, including `[sound:filename.mp3]` tags that Anki renders as audio players.
+This tool uses the `Basic` note type, which ships with every Anki installation. It has two fields: `Front` and `Back`. The flashcard module writes HTML into these fields, including `[sound:filename.mp3]` tags that Anki renders as audio players.
 
 The deck name is set in `config.py`:
 
@@ -294,19 +294,3 @@ AUDIO_DIR = "audio/"
 Six constants, all pointing to local resources. Modules that communicate with external services (`llm.py`, `tts.py`, `anki_connect.py`) import this file to resolve endpoints and paths. There is no environment variable parsing, no `.env` file loading, and no runtime configuration. If you need to change a value, you edit this file and re-run the tool.
 
 `AUDIO_DIR` is a relative path. Generated `.mp3` files are written here during the TTS stage, then read back during the AnkiConnect stage (to base64-encode and upload them to Anki's media folder). The directory is created automatically if it does not exist.
-
-## Verification Checklist
-
-Before proceeding to the implementation chapters, confirm that all components are operational:
-
-| Component | How to Verify | Expected Result |
-|-----------|---------------|-----------------|
-| Python | `python --version` | 3.8 or later |
-| jamdict | `python -c "from jamdict import Jamdict; Jamdict()"` | No errors |
-| edge-tts | `python -c "import edge_tts"` | No errors |
-| requests | `python -c "import requests"` | No errors |
-| LM Studio | `curl http://localhost:1234/v1/models` | JSON with model list |
-| Anki | Application is open and running | Visible in taskbar |
-| AnkiConnect | `curl -X POST http://localhost:8765 -d '{"action":"version","version":6}'` | `{"result": 6, ...}` |
-
-If any of these fail, revisit the corresponding section above. The implementation chapters assume all of these are working.

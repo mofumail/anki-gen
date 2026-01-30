@@ -1,6 +1,6 @@
 # Chapter 5: Local Media Generation
 
-This chapter covers the third stage of the pipeline — converting text into audio files. The TTS module takes two text strings (the vocabulary word and the LLM-generated example sentence) and produces two `.mp3` files that will be embedded in the Anki flashcard. The focus here is on how edge-tts works, the async-to-sync bridge required to use it from a synchronous pipeline, filename normalization for cross-system compatibility, and the file path conventions that Anki requires for media linkage.
+This chapter covers the third stage of the pipeline, converting text into audio files. The TTS module takes two text strings (the vocabulary word and the LLM-generated example sentence) and produces two `.mp3` files that will be embedded in the Anki flashcard. The focus here is on how edge-tts works, the async-to-sync bridge required to use it from a synchronous pipeline, filename normalization for cross-system compatibility, and the file path conventions that Anki requires for media linkage.
 
 ## edge-tts
 
@@ -8,11 +8,11 @@ This chapter covers the third stage of the pipeline — converting text into aud
 
 [`edge-tts`](https://github.com/rany2/edge-tts) is a Python package that interfaces with Microsoft Edge's online text-to-speech service. It uses the same WebSocket-based protocol that the Edge browser uses for its built-in Read Aloud feature. The service is free, requires no API key, and supports a wide range of voices across many languages.
 
-For Japanese, the service provides several neural voices. Neural TTS voices are trained on deep learning models rather than concatenated from pre-recorded speech fragments, which produces more natural prosody, pitch accent, and rhythm — all of which matter significantly for Japanese language learning.
+For Japanese, the service provides several neural voices. Neural TTS voices are trained on deep learning models rather than concatenated from pre-recorded speech fragments, which produces more natural prosody, pitch accent, and rhythm, all of which matter significantly for Japanese language learning.
 
 ### Why Not Fully Local TTS?
 
-The chapter title says "local media generation," and most of this project's architecture avoids network calls. edge-tts is the exception — it sends text to Microsoft's endpoint and receives audio back. This is a pragmatic trade-off.
+The chapter title says "local media generation," and most of this project's architecture avoids network calls. edge-tts is the exception, it sends text to Microsoft's endpoint and receives audio back. This is a pragmatic trade-off.
 
 Fully local TTS options for Japanese exist. Projects like [VOICEVOX](https://voicevox.hiroshiba.jp/) and [Style-BERT-VITS2](https://github.com/litagin02/Style-Bert-VITS2) can run entirely on your machine and produce high-quality Japanese speech. However, they require:
 
@@ -20,9 +20,9 @@ Fully local TTS options for Japanese exist. Projects like [VOICEVOX](https://voi
 - GPU resources that compete with LM Studio for VRAM
 - Additional setup that varies by platform
 
-edge-tts requires none of this — it is a single `pip install` with no system dependencies. The data exposure is minimal: the only text sent to Microsoft's servers is the vocabulary word and one example sentence, with no user-identifying information attached. For a language learning tool, this is an acceptable compromise.
+edge-tts requires none of this, it is a single `pip install` with no system dependencies. The data exposure is minimal: the only text sent to Microsoft's servers is the vocabulary word and one example sentence, with no user-identifying information attached. For a language learning tool, this is an acceptable compromise.
 
-If local-only operation is a hard requirement for your use case, the module's interface makes substitution straightforward. `generate_audio(text, filename)` takes a string and returns a file path — any TTS backend that can write an audio file to disk is a drop-in replacement. The rest of the pipeline does not know or care how the audio was produced.
+If local-only operation is a hard requirement for your use case, the module's interface makes substitution straightforward. `generate_audio(text, filename)` takes a string and returns a file path, any TTS backend that can write an audio file to disk is a drop-in replacement. The rest of the pipeline does not know or care how the audio was produced.
 
 ### Available Japanese Voices
 
@@ -33,7 +33,7 @@ edge-tts provides multiple Japanese voices. The voice is specified by a locale-a
 | `ja-JP-NanamiNeural` | Female | Clear, natural prosody. Default for this project |
 | `ja-JP-KeitaNeural` | Male | Slightly lower pitch, standard NHK-style pronunciation |
 
-Our module uses `ja-JP-NanamiNeural`. To change the voice, modify the `VOICE` constant at the top of the module. You can list all available voices programmatically:
+The module uses `ja-JP-NanamiNeural`. To change the voice, modify the `VOICE` constant at the top of the module. You can list all available voices programmatically:
 
 ```python
 import asyncio
@@ -59,7 +59,7 @@ communicate = edge_tts.Communicate(text, voice)
 await communicate.save(filepath)  # This is a coroutine
 ```
 
-Our pipeline, however, is synchronous. `main.py` calls each module's function in sequence, and none of the other modules use async. We need a bridge.
+The pipeline, however, is synchronous. `main.py` calls each module's function in sequence, and none of the other modules use async. We need a bridge.
 
 ### `asyncio.run()` as the Bridge
 
@@ -73,9 +73,9 @@ def generate_audio(text: str, filename: str) -> str:
     return filepath
 ```
 
-This is the simplest async-to-sync bridge available. `asyncio.run()` was added in Python 3.7 (our minimum supported version is 3.8) specifically for this use case — running a single async entry point from synchronous code. It handles event loop creation, execution, and cleanup in one call.
+This is the simplest async-to-sync bridge available. `asyncio.run()` was added in Python 3.7 (the minimum supported version is 3.8) specifically for this use case, running a single async entry point from synchronous code. It handles event loop creation, execution, and cleanup in one call.
 
-The pipeline calls `generate_audio()` twice (once for the word, once for the sentence), which means `asyncio.run()` creates and destroys the event loop twice. This is slightly inefficient — reusing a single event loop would avoid the setup/teardown overhead — but the overhead is negligible compared to the network round-trip for TTS synthesis. Simplicity wins.
+The pipeline calls `generate_audio()` twice (once for the word, once for the sentence), which means `asyncio.run()` creates and destroys the event loop twice. This is slightly inefficient, reusing a single event loop would avoid the setup/teardown overhead, but the overhead is negligible compared to the network round-trip for TTS synthesis. Simplicity wins.
 
 ### The Windows Event Loop Fix
 
@@ -86,7 +86,7 @@ if sys.platform == "win32":
 
 This line addresses a specific issue on Windows with Python 3.8. The default event loop on Windows is `ProactorEventLoop`, which is based on Windows I/O Completion Ports. When `asyncio.run()` closes a `ProactorEventLoop`, any still-pending transport objects (from `aiohttp`'s connection pool) raise a `RuntimeError: Event loop is closed` during garbage collection.
 
-The error is cosmetic — it does not affect the generated audio or the program's exit code — but it produces alarming stack traces. Switching to `SelectorEventLoop` via the policy avoids the issue entirely. `SelectorEventLoop` uses the `select()` system call instead of IOCP and does not have the same cleanup problem.
+The error is cosmetic, it does not affect the generated audio or the program's exit code, but it produces alarming stack traces. Switching to `SelectorEventLoop` via the policy avoids the issue entirely. `SelectorEventLoop` uses the `select()` system call instead of IOCP and does not have the same cleanup problem.
 
 This policy is set at module import time, before any event loop is created. It affects all subsequent `asyncio.run()` calls in the process. Since the TTS module is the only async code in the project, this has no side effects.
 
@@ -168,7 +168,7 @@ audio_paths = {
 os.makedirs(config.AUDIO_DIR, exist_ok=True)
 ```
 
-The `audio/` directory is created on every call if it does not already exist. The `exist_ok=True` flag makes this idempotent — it is a no-op if the directory is already there. This is called twice per pipeline run (once per audio file), which is redundant but harmless. The alternative — checking once in `main.py` — would leak the TTS module's implementation detail (where it writes files) into the orchestrator.
+The `audio/` directory is created on every call if it does not already exist. The `exist_ok=True` flag makes this idempotent, it is a no-op if the directory is already there. This is called twice per pipeline run (once per audio file), which is redundant but harmless. The alternative, checking once in `main.py`, would leak the TTS module's implementation detail (where it writes files) into the orchestrator.
 
 ## Filename Normalization
 
@@ -178,10 +178,10 @@ Filenames are constructed from Japanese text. The input word 食べる needs to 
 
 Problematic characters include:
 
-- Path separators (`/`, `\`) — interpreted as directory boundaries
-- Special characters (`?`, `*`, `<`, `>`, `|`, `:`, `"`) — forbidden on Windows
-- Newlines and control characters — generally forbidden everywhere
-- Extremely long filenames — most filesystems cap at 255 bytes
+- Path separators (`/`, `\`): interpreted as directory boundaries
+- Special characters (`?`, `*`, `<`, `>`, `|`, `:`, `"`): forbidden on Windows
+- Newlines and control characters: generally forbidden everywhere
+- Extremely long filenames: most filesystems cap at 255 bytes
 
 Japanese characters (kanji, hiragana, katakana) are valid in filenames on all modern operating systems. The risk comes from edge cases: words containing punctuation marks (like the interpunct `・` used in katakana compounds), or LLM-generated sentences containing quotation marks or other special characters.
 
@@ -197,9 +197,9 @@ def sanitize_filename(text: str) -> str:
 
 This function:
 
-1. **Strips non-word characters** — `\w` with the `re.UNICODE` flag matches letters, digits, and underscores in any script (including CJK characters). The pattern `[^\w\s-]` removes everything that is not a word character, whitespace, or hyphen. This eliminates punctuation, path separators, and special characters while preserving Japanese text.
+1. **Strips non-word characters**: `\w` with the `re.UNICODE` flag matches letters, digits, and underscores in any script (including CJK characters). The pattern `[^\w\s-]` removes everything that is not a word character, whitespace, or hyphen. This eliminates punctuation, path separators, and special characters while preserving Japanese text.
 
-2. **Truncates to 50 characters** — Prevents excessively long filenames from sentences. Fifty characters is well under any filesystem limit and produces readable filenames.
+2. **Truncates to 50 characters**: Prevents excessively long filenames from sentences. Fifty characters is well under any filesystem limit and produces readable filenames.
 
 The function lives in `main.py` rather than `tts.py` because filename construction is an orchestration concern. The TTS module accepts a pre-sanitized filename and writes to it; it does not know or decide how filenames are derived from input data.
 
@@ -215,8 +215,8 @@ sentence_filename = f"{safe_word}_sentence.mp3"
 
 For the input 食べる, this produces:
 
-- `食べる_word.mp3` — audio of the word spoken in isolation
-- `食べる_sentence.mp3` — audio of the full example sentence
+- `食べる_word.mp3`: audio of the word spoken in isolation
+- `食べる_sentence.mp3`: audio of the full example sentence
 
 The `_word` and `_sentence` suffixes ensure the two files have distinct names. Without them, both files would be named `食べる.mp3` and the second write would overwrite the first.
 
@@ -232,7 +232,7 @@ Anki stores all media files (audio, images, video) in a single flat directory pe
 - **macOS**: `~/Library/Application Support/Anki2/<profile>/collection.media/`
 - **Linux**: `~/.local/share/Anki2/<profile>/collection.media/`
 
-There are no subdirectories. All media files for all decks live in the same folder. Files are referenced by name only — Anki does not use paths.
+There are no subdirectories. All media files for all decks live in the same folder. Files are referenced by name only, Anki does not use paths.
 
 ### The `[sound:]` Tag
 
@@ -253,7 +253,7 @@ Audio files reach Anki through a two-step process:
 1. **TTS module** writes `.mp3` files to the local `audio/` directory
 2. **AnkiConnect module** reads those files, base64-encodes them, and sends them to Anki via the `storeMediaFile` API action
 
-The local `audio/` directory is a staging area. After the AnkiConnect module uploads the files, the copies in `audio/` are no longer needed (Anki has its own copy in the media folder). They are not automatically deleted — they serve as a cache and a debugging aid. If something goes wrong with the Anki upload, you can inspect the generated audio files directly.
+The local `audio/` directory is a staging area. After the AnkiConnect module uploads the files, the copies in `audio/` are no longer needed (Anki has its own copy in the media folder). They are not automatically deleted, they serve as a cache and a debugging aid. If something goes wrong with the Anki upload, you can inspect the generated audio files directly.
 
 ## What Gets Generated
 
@@ -261,21 +261,21 @@ The local `audio/` directory is a staging area. After the AnkiConnect module upl
 
 The vocabulary word is spoken in isolation. For 食べる, the TTS service receives the string `食べる` and produces natural Japanese pronunciation: たべる with appropriate pitch accent.
 
-Japanese TTS handles kanji-to-speech conversion internally — the service has its own reading disambiguation. For common words, this is reliable. For rare words or words with multiple readings, the TTS service may choose a different reading than intended. This is generally not a problem for vocabulary study, where the correct reading is displayed on the flashcard alongside the audio.
+Japanese TTS handles kanji-to-speech conversion internally, the service has its own reading disambiguation. For common words, this is reliable. For rare words or words with multiple readings, the TTS service may choose a different reading than intended. This is generally not a problem for vocabulary study, where the correct reading is displayed on the flashcard alongside the audio.
 
 ### Sentence Audio
 
-The LLM-generated example sentence is spoken as a complete utterance. For a sentence like 彼は毎日ご飯を食べます, the TTS service produces natural sentence-level prosody — appropriate pauses between phrases, rising and falling intonation, and connected speech patterns that differ from reading each word individually.
+The LLM-generated example sentence is spoken as a complete utterance. For a sentence like 彼は毎日ご飯を食べます, the TTS service produces natural sentence-level prosody, appropriate pauses between phrases, rising and falling intonation, and connected speech patterns that differ from reading each word individually.
 
 Sentence-level audio is pedagogically valuable because it demonstrates how the word sounds in context: where it falls in the rhythm of a natural sentence, how it connects to surrounding particles and verb endings, and how sentence-level pitch patterns interact with word-level pitch accent.
 
 ## Role in the Pipeline
 
-The TTS module is a pure producer — it creates files and returns their paths. It does not read from or depend on the retrieval module's output directly. Its inputs come from `main.py`, which passes the raw word string and the LLM's generated sentence.
+The TTS module is a pure producer, it creates files and returns their paths. It does not read from or depend on the retrieval module's output directly. Its inputs come from `main.py`, which passes the raw word string and the LLM's generated sentence.
 
-The module's output — file paths — is consumed by two downstream modules:
+The module's output, file paths, is consumed by two downstream modules:
 
 - **`flashcard.py`** reads the filenames to construct `[sound:]` tags in the card's HTML
 - **`anki_connect.py`** reads the full file paths to upload the audio data to Anki
 
-This is the point in the pipeline where the data representation shifts. The retrieval and LLM modules deal in text — strings, dicts, JSON. The TTS module introduces files into the data flow. From here forward, the pipeline carries both structured text data and references to binary files on disk, and the downstream modules must handle both.
+This is the point in the pipeline where the data representation shifts. The retrieval and LLM modules deal in text, strings, dicts, JSON. The TTS module introduces files into the data flow. From here forward, the pipeline carries both structured text data and references to binary files on disk, and the downstream modules must handle both.

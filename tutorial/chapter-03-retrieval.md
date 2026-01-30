@@ -1,6 +1,6 @@
 # Chapter 3: Retrieval
 
-This chapter covers the first stage of the pipeline — looking up a Japanese word in a local dictionary database and extracting structured data from the result. The retrieval module produces the deterministic ground truth that every downstream stage depends on.
+This chapter covers the first stage of the pipeline, looking up a Japanese word in a local dictionary database and extracting structured data from the result. The retrieval module produces the deterministic ground truth that every downstream stage depends on.
 
 ## The Data Sources
 
@@ -48,11 +48,11 @@ jmd = Jamdict()
 result = jmd.lookup("食べる")
 ```
 
-- `result.entries` — A list of JMdict entries matching the query. Each entry is a vocabulary item with kanji forms, kana forms, and sense groups.
-- `result.chars` — A list of KANJIDIC2 character entries for any kanji found in the query string. For 食べる, this would include the entry for 食.
-- `result.names` — A list of JMnedict (Japanese Names Dictionary) entries. We don't use this.
+- `result.entries` - A list of JMdict entries matching the query. Each entry is a vocabulary item with kanji forms, kana forms, and sense groups.
+- `result.chars` - A list of KANJIDIC2 character entries for any kanji found in the query string. For 食べる, this would include the entry for 食.
+- `result.names` - A list of JMnedict (Japanese Names Dictionary) entries. This is not used.
 
-The lookup is flexible — it searches kanji forms, kana forms, and English glosses. Searching for `食べる`, `たべる`, or `eat` all return results (though the result sets differ).
+The lookup is flexible, it searches kanji forms, kana forms, and English glosses. Searching for `食べる`, `たべる`, or `eat` all return results (though the result sets differ).
 
 ### Navigating JMdict Entries
 
@@ -61,22 +61,22 @@ A JMdict entry has a nested structure that reflects how Japanese vocabulary work
 ```python
 entry = result.entries[0]
 
-# Kanji forms — the ways this word can be written
+# Kanji forms: the ways this word can be written
 entry.kanji_forms   # [食べる]
 
-# Kana forms — the pronunciation(s)
+# Kana forms: the pronunciation(s)
 entry.kana_forms    # [たべる]
 
-# Senses — distinct meanings, each with glosses
+# Senses: distinct meanings, each with glosses
 entry.senses        # [SenseGroup(...), SenseGroup(...), ...]
 ```
 
 Each sense group contains:
 
-- `gloss` — A list of `Gloss` objects, each with a `text` attribute containing an English definition
-- `pos` — Part of speech tags (e.g., "Ichidan verb", "transitive verb")
-- `misc` — Usage notes
-- `field` — Subject field tags (e.g., "computing", "medicine")
+- `gloss`: A list of `Gloss` objects, each with a `text` attribute containing an English definition
+- `pos`: Part of speech tags (e.g., "Ichidan verb", "transitive verb")
+- `misc`: Usage notes
+- `field`: Subject field tags (e.g., "computing", "medicine")
 
 For our purposes, we extract two things from entries: all unique kana readings, and all unique English glosses across all senses. The part-of-speech and field data is available but not used in the current flashcard format.
 
@@ -87,7 +87,7 @@ A KANJIDIC2 character entry provides data about a single kanji:
 ```python
 char = result.chars[0]
 
-char.literal        # "食" — the character itself
+char.literal        # "食": the character itself
 
 # Reading-meaning groups
 rm = char.rm_groups[0]
@@ -155,11 +155,11 @@ def lookup(word: str) -> dict:
 jmd = Jamdict()
 ```
 
-The `Jamdict` instance is created at module level, outside any function. This means the database connection is established once when the module is first imported, not on every call to `lookup()`. For a CLI tool that processes one word per invocation this makes no practical difference, but it is the correct pattern — `Jamdict()` locates the SQLite database file and opens a connection, and there is no reason to repeat that work.
+The `Jamdict` instance is created at module level, outside any function. This means the database connection is established once when the module is first imported, not on every call to `lookup()`. For a CLI tool that processes one word per invocation this makes no practical difference, but it is the correct pattern, `Jamdict()` locates the SQLite database file and opens a connection, and there is no reason to repeat that work.
 
 ### Input Handling
 
-The function takes a single string and passes it directly to `jmd.lookup()`. There is no input normalization, no romaji-to-kana conversion, and no fuzzy matching. The user is expected to provide the word in Japanese script (kanji, hiragana, or katakana). This is a deliberate choice — the retrieval module is not the place for input preprocessing. If the input produces no results, the function raises a `ValueError` with the original query, and `main.py` catches it and exits.
+The function takes a single string and passes it directly to `jmd.lookup()`. There is no input normalization, no romaji-to-kana conversion, and no fuzzy matching. The user is expected to provide the word in Japanese script (kanji, hiragana, or katakana). If the input produces no results, the function raises a `ValueError` with the original query, and `main.py` catches it and exits.
 
 ### Extracting Readings
 
@@ -173,7 +173,7 @@ for entry in result.entries:
 
 A lookup can return multiple JMdict entries (homonyms, related forms), and each entry can have multiple kana forms. We flatten all of them into a single deduplicated list. The `str()` call converts `jamdict`'s `KanaForm` object to a plain string.
 
-The deduplication uses a linear scan (`if str(kana) not in readings`) rather than a set. This preserves insertion order — the first entry's readings appear first, which is typically the most common reading. With Japanese vocabulary, the number of readings for a given word is small (usually 1–3), so the O(n) membership check is not a concern.
+The deduplication uses a linear scan (`if str(kana) not in readings`) rather than a set. This preserves insertion order: the first entry's readings appear first, which is typically the most common reading. With Japanese vocabulary, the number of readings for a given word is small (usually 1–3), so the O(n) membership check is not a concern.
 
 ### Extracting Meanings
 
@@ -186,12 +186,12 @@ for entry in result.entries:
                 meanings.append(str(gloss))
 ```
 
-The same pattern applies to meanings. A JMdict entry groups its English definitions into "senses" — distinct meaning clusters. The word 食べる has two senses:
+The same pattern applies to meanings. A JMdict entry groups its English definitions into "senses": distinct meaning clusters. The word 食べる has two senses:
 
 1. "to eat" (the literal meaning)
 2. "to live on (e.g. a salary), to live off, to subsist on" (the figurative meaning)
 
-Each sense can have multiple glosses (synonymous English translations). We flatten everything into a single list because the flashcard format does not distinguish between senses — the back of the card shows all meanings as a combined list. The LLM module receives this same list and uses it to understand the word's semantic range when generating example sentences.
+Each sense can have multiple glosses (synonymous English translations). We flatten everything into a single list because the flashcard format does not distinguish between senses: the back of the card shows all meanings as a combined list. The LLM module receives this same list and uses it to understand the word's semantic range when generating example sentences.
 
 ### Extracting Kanji Info
 
@@ -227,7 +227,7 @@ The function returns a plain dict with four keys. This dict is the interface con
 
 `kanji_info` is `None` for words that contain no kanji (pure kana words like おはよう). Downstream modules check for this and handle it accordingly.
 
-The dict uses plain Python types — strings and lists of strings. There are no custom classes, no dataclasses, no type wrappers. This keeps the interface simple and makes the data easy to inspect during debugging (just `print()` the dict).
+The dict uses plain Python types, strings and lists of strings. There are no custom classes, no dataclasses, no type wrappers. This keeps the interface simple and makes the data easy to inspect during debugging (just `print()` the dict).
 
 ## What the Data Looks Like
 
@@ -276,7 +276,7 @@ The dict uses plain Python types — strings and lists of strings. There are no 
 }
 ```
 
-For a single kanji, both `meanings` (from JMdict, word-level) and `kanji_info.meanings` (from KANJIDIC2, character-level) are populated. They overlap but are not identical — JMdict meanings reflect how the character is used as a standalone word, while KANJIDIC2 meanings reflect the character's semantic range across all compounds.
+For a single kanji, both `meanings` (from JMdict, word-level) and `kanji_info.meanings` (from KANJIDIC2, character-level) are populated. They overlap but are not identical, JMdict meanings reflect how the character is used as a standalone word, while KANJIDIC2 meanings reflect the character's semantic range across all compounds.
 
 ### Kana-Only Word
 
@@ -294,8 +294,8 @@ No kanji in the query means no KANJIDIC2 data. `kanji_info` is `None`.
 
 ## Role in the Pipeline
 
-The retrieval module is the only stage in the pipeline that touches a curated, authoritative data source. Everything after it is either generated (LLM, TTS) or mechanical (flashcard formatting, AnkiConnect delivery). This is why it runs first — it establishes the factual foundation that the generative stages build on.
+The retrieval module is the only stage in the pipeline that touches a curated, authoritative data source. Everything after it is either generated (LLM, TTS) or mechanical (flashcard formatting, AnkiConnect delivery). This is why it runs first, it establishes the factual foundation that the generative stages build on.
 
-The readings and meanings from this module appear directly on the finished flashcard. They are not paraphrased, summarized, or transformed by the LLM. The LLM receives them as input context and generates *additional* content (example sentences), but the dictionary data passes through to the card unchanged. This is the architectural principle from Chapter 1 in practice: deterministic data for correctness, generative data for enrichment.
+The readings and meanings from this module appear directly on the finished flashcard. They are not paraphrased, summarized, or transformed by the LLM. The LLM receives them as input context and generates additional content (example sentences), but the dictionary data passes through to the card unchanged.
 
-If `lookup()` raises a `ValueError` (no results found), the pipeline halts immediately. There is no point in asking the LLM to generate an example sentence for a word that does not exist in the dictionary, and there is no point in generating audio for a word we cannot define. The fail-fast behavior here prevents the downstream modules from producing confident-looking but ungrounded output — exactly the kind of error that a hybrid architecture is designed to avoid.
+If `lookup()` raises a `ValueError` (no results found), the pipeline halts immediately. There is no point in asking the LLM to generate an example sentence for a word that does not exist in the dictionary, and there is no point in generating audio for a word we cannot define. The fail-fast behavior here prevents the downstream modules from producing confident-looking but ungrounded output, exactly the kind of error that a hybrid architecture is designed to avoid.
