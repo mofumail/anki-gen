@@ -1,0 +1,4 @@
+jamdict
+jamdict-data
+edge-tts
+requests

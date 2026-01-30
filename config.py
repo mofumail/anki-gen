@@ -1,0 +1,6 @@
+LM_STUDIO_URL = "http://localhost:1234/v1/chat/completions"
+LM_STUDIO_MODEL = "local-model"
+ANKI_CONNECT_URL = "http://localhost:8765"
+ANKI_DECK_NAME = "Japanese"
+ANKI_NOTE_TYPE = "Basic"
+AUDIO_DIR = "audio/"
