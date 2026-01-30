@@ -298,4 +298,4 @@ The retrieval module is the only stage in the pipeline that touches a curated, a
 
 The readings and meanings from this module appear directly on the finished flashcard. They are not paraphrased, summarized, or transformed by the LLM. The LLM receives them as input context and generates additional content (example sentences), but the dictionary data passes through to the card unchanged.
 
-If `lookup()` raises a `ValueError` (no results found), the pipeline halts immediately. There is no point in asking the LLM to generate an example sentence for a word that does not exist in the dictionary, and there is no point in generating audio for a word we cannot define. The fail-fast behavior here prevents the downstream modules from producing confident-looking but ungrounded output, exactly the kind of error that a hybrid architecture is designed to avoid.
+If `lookup()` raises a `ValueError` (no results found), the pipeline halts immediately.
